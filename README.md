@@ -5,6 +5,8 @@
 ## 主要内容
 - 项目类型：C 语言，基于 Make 构建
 - 支持平台：Windows（MinGW / MSYS2）、Linux、macOS
+- src 目录下主程序编译
+- test 目录下测试程序编译
 
 ## 计划
 - 增加编译动态库、静态库功能
@@ -16,7 +18,8 @@
 ├── lib               第三方或本地库
 ├── output            构建输出与脚本
 ├── src               源代码
-└── tool  
+├── test              测试代码
+└── tool              工具
 ```
 
 ## 构建工具
@@ -44,6 +47,8 @@ mingw32-make all
 ./build.sh run
 # 使用脚本重新构建
 ./build.sh all
+# 编译test文件夹下%.c
+./build.sh test %
 ```
 
 ## 运行
