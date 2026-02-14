@@ -73,7 +73,7 @@
 #define LOG_ENDSTR_FORMAT ": "
 #endif
 
-#define LOGDEF static inline
+#define LOGDEF
 
 /* Helper: level -> string */
 static inline const char *log_level_to_string(int lvl)
@@ -187,19 +187,16 @@ LOGDEF void log_unlock(void);
 #else
 #  define LOG_NORETURN
 #endif
-LOGDEF LOG_NORETURN void log_abort(void)
-{
-    abort();
-}
-#define LOG_ASSERT(cond, fmt, ...)  \
+LOGDEF LOG_NORETURN void log_abort(void);
+#define LOG_ASSERT(cond)  \
     do {                            \
         if (!(cond)) {              \
             log_lock();             \
             log_print_time();       \
             log_printf(LOG_PID_FORMAT LOG_LOCATION_FORMAT LOG_FUNCTION_FORMAT "\n" \
-                "Assertion failed:\n\t" fmt,                    \
+                "Assertion failed:\n\t" "%s is false", \
                 log_get_pid(), log_get_tid(),                   \
-                __FILE__, __LINE__, __func__, ##__VA_ARGS__);   \
+                __FILE__, __LINE__, __func__, #cond);   \
             log_abort();                                        \
         } \
     } while (0)
@@ -211,6 +208,11 @@ LOGDEF LOG_NORETURN void log_abort(void)
 #endif
 
 #ifdef LOG_IMPLEMENTATION
+LOGDEF LOG_NORETURN void log_abort(void)
+{
+    abort();
+}
+
 LOGDEF unsigned long log_get_pid(void)
 {
 #if defined(_WIN32)
