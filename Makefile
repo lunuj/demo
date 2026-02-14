@@ -7,13 +7,13 @@ NM		:= $(CROSS_COMPILE)nm
 BIN_SUFFIX	:= .out
 # 文件目录
 SOURCE_DIR 	= src
+TEST_DIR	= test
 INCLUDE_DIR = include
 THIRD_DIR	= third
 LIB_DIR		= lib
 OUTPUT_DIR	= output
-TEST_DIR	= test
-OUTPUT_DEP_DIR	= $(OUTPUT_DIR)/dep
-OUTPUT_OBJ_DIR	= $(OUTPUT_DIR)/obj
+OUTPUT_DEP_DIR	= $(OUTPUT_DIR)/.dep
+OUTPUT_OBJ_DIR	= $(OUTPUT_DIR)/.obj
 TOOL_DIR	= tool
 
 # 源文件收集
@@ -24,6 +24,9 @@ DEPS 	:= $(patsubst %.c,$(OUTPUT_DEP_DIR)/%.d,$(SRCS))
 SRCS_NO_MAIN := $(filter-out $(SOURCE_DIR)/main.c, $(SRCS))
 OBJS_NO_MAIN := $(patsubst %.c,$(OUTPUT_OBJ_DIR)/%.o,$(SRCS_NO_MAIN)) 
 DEPS_NO_MAIN := $(patsubst %.c,$(OUTPUT_DEP_DIR)/%.d,$(SRCS_NO_MAIN))
+
+TSET_SRCS := $(shell find $(TEST_DIR) -type f -name "*.c")
+TEST_OBJS := $(patsubst %.c,$(OUTPUT_OBJ_DIR)/%.o,$(TSET_SRCS)) 
 
 # 库文件收集
 LIB_FILES  	:= $(shell find $(LIB_DIR) -type f -name "*")
@@ -69,7 +72,6 @@ TARGET  := demo$(BIN_SUFFIX)
 
 # 编译命令
 $(OUTPUT_OBJ_DIR)/%.o : %.c
-	@$(SHELL) -c "echo $(SRCS)"
 	@$(SHELL) -c "mkdir -p $(dir $@)"
 	@$(SHELL) -c "mkdir -p $(OUTPUT_DEP_DIR)/$(dir $*)"
 	$(CC) $(CFLAGS) $(INCLUDE) -MMD -MP -MF $(OUTPUT_DEP_DIR)/$*.d -MT $@ -c $< -o $@
@@ -83,8 +85,8 @@ $(OUTPUT_DIR)/$(TARGET): $(OBJS)
 	$(CC) $^ $(LIB) $(LIBS) $(THIRD_LIBS) $(OS_LIBS) -o $@
 
 # TODO: %.o will be deleted, should we keep it?
-$(OUTPUT_DIR)/%.out: $(OUTPUT_OBJ_DIR)/$(TEST_DIR)/%.o $(OBJS_NO_MAIN) | $(LIB_FILES)
-	echo $(THIRD_LIB_DIR_PATH)
+$(OUTPUT_DIR)/%.out: $(OUTPUT_OBJ_DIR)/$(TEST_DIR)/%.o $(OBJS_NO_MAIN) | $(LIB_FILES) $(TEST_OBJS)
+	@$(SHELL) -c "mkdir -p $(dir $@)"
 	$(CC) $^ $(LIB) $(LIBS) $(THIRD_LIBS) $(OS_LIBS) -o $@
 print-%:
 	@echo $($*)
