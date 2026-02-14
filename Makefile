@@ -31,13 +31,40 @@ LIBS  := $(patsubst $(LIB_DIR)/lib%.*,-l%,$(LIB_FILES))
 
 THIRD_INC := $(patsubst %,-I%,$(wildcard $(THIRD_DIR)/*/install/include) $(wildcard $(THIRD_DIR)/*/include))
 THIRD_LIB_DIR := $(patsubst %,-L%,$(wildcard $(THIRD_DIR)/*/install/lib) $(wildcard $(THIRD_DIR)/*/lib))
+THIRD_LIB_DIR_PATH := $(foreach d,$(wildcard $(THIRD_DIR)/*/install/lib) $(wildcard $(THIRD_DIR)/*/lib),-Wl,-rpath,$(d))
 THIRD_LIB_FILE := $(filter %.so %.lib %.a, $(wildcard $(THIRD_DIR)/*/install/lib/*) $(wildcard $(THIRD_DIR)/*/lib/*))
 THIRD_LIBS := $(patsubst lib%,-l%,$(basename $(notdir $(THIRD_LIB_FILE))))
-OS_LIBS := -lgdi32 -luser32 -lkernel32 -lshell32 -lopengl32
+
+# 操作系统库
+ifeq ($(OS),)
+  UNAME_S := $(shell uname -s)
+  ifeq ($(UNAME_S),Darwin)
+    OS := Mac
+  else ifeq ($(UNAME_S),Linux)
+    OS := Linux
+  else ifeq ($(UNAME_S),Windows_NT)
+    OS := Windows
+  else
+    OS := Unknown
+  endif
+endif
+
+ifeq ($(OS), Mac)
+	OS_LIBS = -framework Cocoa -framework AppKit -framework Foundation \
+			  -framework CoreFoundation -framework IOKit -framework CoreVideo \
+			  -framework OpenGL -framework QuartzCore
+else ifeq ($(OS), Linux)
+  	OS_LIBS := -ldl -lpthread -lGL -lX11
+else ifeq ($(OS), Windows)
+	OS_LIBS = -lgdi32 -luser32 -lkernel32 -lshell32 -lopengl32
+else
+  $(error Unsupported OS: $(OS))
+endif
+
 # 编译标志
-CFLAGS	:= -Wall -Wextra
-INCLUDE	:= -I./$(INCLUDE_DIR) -I$(THIRD_INC)
-LIB		:= -L./$(LIB_DIR) $(THIRD_LIB_DIR)
+CFLAGS	:= -Wall -Wextra -g
+INCLUDE	:= -I./$(INCLUDE_DIR) $(THIRD_INC)
+LIB		:= -L./$(LIB_DIR) $(THIRD_LIB_DIR) $(THIRD_LIB_DIR_PATH)
 TARGET  := demo$(BIN_SUFFIX)
 
 # 编译命令
@@ -57,6 +84,7 @@ $(OUTPUT_DIR)/$(TARGET): $(OBJS)
 
 # TODO: %.o will be deleted, should we keep it?
 $(OUTPUT_DIR)/%.out: $(OUTPUT_OBJ_DIR)/$(TEST_DIR)/%.o $(OBJS_NO_MAIN) | $(LIB_FILES)
+	echo $(THIRD_LIB_DIR_PATH)
 	$(CC) $^ $(LIB) $(LIBS) $(THIRD_LIBS) $(OS_LIBS) -o $@
 print-%:
 	@echo $($*)

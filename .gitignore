@@ -1,1 +1,5 @@
 output/
+# 忽略 third 目录下所有内容
+third/**
+res
+.vscode/*
