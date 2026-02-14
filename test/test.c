@@ -3,6 +3,8 @@
 #include <unistd.h>
 
 #include "main.h"
+#define LOG_IMPLEMENTATION
+#include "log.h"
 
 int main(int argc, char const *argv[])
 {

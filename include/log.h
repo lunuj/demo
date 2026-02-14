@@ -172,12 +172,13 @@ LOGDEF void log_unlock(void);
 
 #define LOG(fmt, ...) LOG_L(LOG_INFO, fmt, ##__VA_ARGS__)
 
-#define LOG_L(level, fmt, ...)                           \
-    do {                                                 \
-        int _lvl = (level);                              \
+#define LOG_L(level, fmt, ...)                          \
+    do {                                                \
+        int _lvl = (level);                             \
         if (_lvl < LOG_LEVEL_THRESHOLD) break;          \
         LOG_OUTPUT(log_level_to_string(_lvl), fmt,      \
-                   ##__VA_ARGS__);                       \
+                   ##__VA_ARGS__);                      \
+        if(level == LOG_FATAL) {abort();}               \
     } while (0)
 
 #if defined(__GNUC__) || defined(__clang__)
