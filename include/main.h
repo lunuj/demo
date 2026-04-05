@@ -1,6 +1,5 @@
-#ifndef MAIN_H
-#define MAIN_H
-
+#pragma once
+#include "useful.h"
 #define VERSION "0.1.0"
 
-#endif // MAIN_H
+#define COMPILE_TIME __DATE__ " " __TIME__
