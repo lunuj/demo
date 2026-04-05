@@ -26,8 +26,6 @@ BIN_SUFFIX      := .out
 SOURCE_DIR      := src
 LIB_DIR         := lib
 INCLUDE_DIR     := include
-# TODO we have lib, mybe not use any more
-# THIRD_DIR       := third
 TEST_DIR        := test
 OUTPUT_DIR      := output
 OUTPUT_DEP_DIR  := $(OUTPUT_DIR)/.dep
@@ -36,7 +34,7 @@ TOOL_DIR        := tool
 EXAMPLE_DIR		:= example
 
 # 确保必要目录存在
-$(shell mkdir -p $(SOURCE_DIR) $(LIB_DIR)/$(OS) $(INCLUDE_DIR) $(THIRD_DIR) $(TEST_DIR) $(OUTPUT_DIR) $(TOOL_DIR) $(EXAMPLE_DIR))
+$(shell mkdir -p $(SOURCE_DIR) $(LIB_DIR)/$(OS) $(INCLUDE_DIR) $(TEST_DIR) $(OUTPUT_DIR) $(TOOL_DIR) $(EXAMPLE_DIR))
 
 # 源文件收集
 SRCS            := $(shell find $(SOURCE_DIR) -type f -name "*.c")
@@ -55,17 +53,10 @@ TEST_DEPS       := $(patsubst %.c,$(OUTPUT_DEP_DIR)/%.d,$(TSET_SRCS))
 -include $(DEPS_NO_MAIN)
 -include $(TEST_DEPS)
 
-# TODO we have lib, mybe not use any more
-# THIRD_INC       := $(THIRD_DIR)/include
-# THIRD_LIB_DIR   := $(patsubst %,-L%,$(wildcard $(THIRD_DIR)/*/install/lib) $(wildcard $(THIRD_DIR)/*/lib))
-# THIRD_LIB_DIR_PATH := $(foreach d,$(wildcard $(THIRD_DIR)/*/install/lib) $(wildcard $(THIRD_DIR)/*/lib),-Wl,-rpath,$(d))
-# THIRD_LIB_FILE  := $(filter %.so %.lib %.a, $(wildcard $(THIRD_DIR)/*/install/lib/*) $(wildcard $(THIRD_DIR)/*/lib/*))
-# THIRD_LIBS      := $(patsubst lib%,-l%,$(basename $(notdir $(THIRD_LIB_FILE))))
-
 # 编译标志
 CFLAGS          := -Wall -Wextra -g -Wno-unused-variable -Wno-missing-braces
-INCLUDE         := -I./$(INCLUDE_DIR) $(THIRD_INC)
-LIB             := -L./$(LIB_DIR) $(THIRD_LIB_DIR) $(THIRD_LIB_DIR_PATH)
+INCLUDE         := -I./$(INCLUDE_DIR)
+LIB             := -L./$(LIB_DIR)
 TARGET          := demo$(BIN_SUFFIX)
 
 # 库文件收集
@@ -94,15 +85,15 @@ $(OUTPUT_OBJ_DIR)/%.o : %.c
 	$(CC) $(CFLAGS) $(INCLUDE) -MMD -MP -MF $(OUTPUT_DEP_DIR)/$*.d -MT $@ -c $< -o $@
 
 # 默认目标
-all: $(OUTPUT_DIR)/$(TARGET) $(LIB_FILES) $(THIRD_LIB_FILE)
+all: $(OUTPUT_DIR)/$(TARGET) $(LIB_FILES)
 
 $(OUTPUT_DIR)/$(TARGET): $(OBJS)
-	$(CC) $^ $(LIB) $(LIBS) $(THIRD_LIBS) $(OS_LIBS) -o $@
+	$(CC) $^ $(LIB) $(LIBS) $(OS_LIBS) -o $@
 
 # 测试目标
 $(OUTPUT_DIR)/%.out: $(OUTPUT_OBJ_DIR)/$(TEST_DIR)/%.o $(OBJS_NO_MAIN) | $(LIB_FILES)
 	$(call MAKE_DIR,$(dir $@))
-	$(CC) $^ $(LIB) $(LIBS) $(THIRD_LIBS) $(OS_LIBS) -o $@
+	$(CC) $^ $(LIB) $(LIBS) $(OS_LIBS) -o $@
 
 # 打印目标
 print-%:
